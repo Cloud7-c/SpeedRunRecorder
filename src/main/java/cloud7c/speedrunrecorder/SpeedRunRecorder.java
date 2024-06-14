@@ -8,6 +8,7 @@ import cloud7c.speedrunrecorder.model.Preferences;
 import cloud7c.speedrunrecorder.model.Record;
 import cloud7c.speedrunrecorder.util.Logger;
 import cloud7c.speedrunrecorder.util.SleepUtil;
+import cloud7c.speedrunrecorder.util.TimeUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -96,7 +97,7 @@ public class SpeedRunRecorder {
         @Override
         public void run() {
             lastCheckTime = LatestRunTimeLoader.loadLatestRunTime();
-            Logger.log("Loaded last check time: " + lastCheckTime);
+            Logger.log("Loaded last check time: " + lastCheckTime + ", " + TimeUtil.formatDateTime(lastCheckTime));
             while(running.get()){
                 String newWorldContent = IgtLatestWorldReader.readLatestWorld(lastCheckTime);
                 if(newWorldContent == null){
@@ -154,9 +155,15 @@ public class SpeedRunRecorder {
 
                 Logger.log("Starting new run: " + worldPath);
                 eventsLogPath = worldPath + EVENT_LOG_PATH;
+                long startTime = LatestRunReader.getCreationTime(eventsLogPath);
+                if(startTime == -1){
+                    Logger.log("Failed to get start time, skipping");
+                    waitForNewRun();
+                    continue;
+                }
                 currentRecord = new Record();
+                currentRecord.setStart(startTime);
                 currentRecord.setWorldPath(worldPath);
-                currentRecord.setStart(LatestRunReader.getCreationTime(eventsLogPath));
 
                 lineCount = 0;
                 lastCheckTime = -1;

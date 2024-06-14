@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -38,8 +39,14 @@ public class LatestRunReader {
 
     // Some file systems may not support getting the file creation time.
     public static long getCreationTime(String path) {
+        // If the file does not exist, return -1.
+        Path filePath = Paths.get(path);
+        if (!Files.exists(filePath)) {
+            return -1;
+        }
+
         try {
-            return Files.readAttributes(Paths.get(path), BasicFileAttributes.class).creationTime().toMillis();
+            return Files.readAttributes(filePath, BasicFileAttributes.class).creationTime().toMillis();
         } catch (IOException e) {
             e.printStackTrace();
         }
